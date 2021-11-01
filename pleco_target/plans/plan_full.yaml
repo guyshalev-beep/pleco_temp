@@ -1,0 +1,297 @@
+
+# docker run -d -p 10.10.0.6:50051:50051 guypleco/gcp:latest
+handlers:
+  - type: FilesystemRepositoryHandler
+    directory: /home/pleco2309/pleco/pleco/pleco_target/yaml/
+  - type: DeploymentHandler
+    name: myDepl
+sources:
+  !include plan_sources.yaml
+plan:
+# Clone services to follower (without deleteing from leader):
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: adservice
+      namespace: online-boutique
+      type: Service
+      path: services/adservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: cartservice
+      namespace: online-boutique
+      type: Service
+      path: services/cartservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: checkoutservice
+      namespace: online-boutique
+      type: Service
+      path: services/checkoutservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: currencyservice
+      namespace: online-boutique
+      type: Service
+      path: services/currencyservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: emailservice
+      namespace: online-boutique
+      type: Service
+      path: services/emailservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: paymentservice
+      namespace: online-boutique
+      type: Service
+      path: services/paymentservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: productcatalogservice
+      namespace: online-boutique
+      type: Service
+      path: services/productcatalogservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: recommendationservice
+      namespace: online-boutique
+      type: Service
+      path: services/recommendationservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: redis-cart
+      namespace: online-boutique
+      type: Service
+      path: services/redis-cart-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: shippingservice
+      namespace: online-boutique
+      type: Service
+      path: services/shippingservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: standalone
+    resource:
+      name: frontend
+      namespace: online-boutique
+      type: Service
+      path: services/frontend-svc.yaml
+      handler: FilesystemRepositoryHandler
+# Leap deployment (create on follower and delete from leader)
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: adservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/adservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: cartservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/cartservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: checkoutservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/checkoutservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: currencyservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/currencyservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: emailservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/emailservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: paymentservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/paymentservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: productcatalogservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/productcatalogservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: recommendationservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/recommendationservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: RedisHandler
+    method: leap_to_new_cluster
+    resource:
+      name: redis-cart
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/redis-cart-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: shippingservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/shippingservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: DeploymentHandler
+    method: leap_to_new_cluster
+    resource:
+      name: frontend
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/frontend-deployment.yaml
+      handler: FilesystemRepositoryHandler
+# delete services from leader
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: redis-cart
+      namespace: online-boutique
+      type: Serivce
+      path: services/cartservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: redis-cart
+      namespace: online-boutique
+      type: Service
+      path: services/cartservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: adservice
+      namespace: online-boutique
+      type: Service
+      path: services/adservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: cartservice
+      namespace: online-boutique
+      type: Service
+      path: services/cartservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: checkoutservice
+      namespace: online-boutique
+      type: Service
+      path: services/checkoutservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: currencyservice
+      namespace: online-boutique
+      type: Service
+      path: services/currencyservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: emailservice
+      namespace: online-boutique
+      type: Service
+      path: services/emailservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: paymentservice
+      namespace: online-boutique
+      type: Service
+      path: services/paymentservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: productcatalogservice
+      namespace: online-boutique
+      type: Service
+      path: services/productcatalogservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: recommendationservice
+      namespace: online-boutique
+      type: Service
+      path: services/recommendationservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: redis-cart
+      namespace: online-boutique
+      type: Service
+      path: services/redis-cart-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: ServiceHandler
+    method: leap_to_new_cluster
+    resource:
+      name: shippingservice
+      namespace: online-boutique
+      type: Service
+      path: services/shippingservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: GCPLoadBalancerHandler
+    method: leap #standalone
+    resource:
+      name: gcp.loadbalancer
+      type: LoadBalancer
+      handler:
+      endpoint_group_name: plecoendpointgroup
+      backend_service: plecobeservice
+      target_port: 80
+      target_service:
+        namespace: istio-system
+        service_name: istio-ingressgateway

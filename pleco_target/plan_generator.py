@@ -75,10 +75,19 @@ class PlanGenerator(object):
     cluster_follower_suffix = sys.argv[4]
     plan_file = sys.argv[5]
 
-    def __init__(self, method):
+    def __init__(self, cluster_leader_context,cluster_leader_suffix, cluster_follower_context, cluster_follower_suffix,plan_file):
         # print("start FilesystemRepositoryHandler.")
+        self.cluster_leader_context = cluster_leader_context
+        self.cluster_leader_suffix = cluster_leader_suffix
+        self.cluster_follower_context = cluster_follower_context
+        self.cluster_follower_suffix =  cluster_follower_suffix
+        self.plan_file = plan_file
         pass
 
     if __name__ == '__main__':
         generate_sources_file(cluster_leader_context, cluster_leader_suffix, cluster_follower_context,
                               cluster_follower_suffix, plan_file)
+
+    def generate(self):
+        generate_sources_file(self.cluster_leader_context, self.cluster_leader_suffix, self.cluster_follower_context,
+                              self.cluster_follower_suffix, self.plan_file)
