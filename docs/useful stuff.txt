@@ -1,0 +1,87 @@
+Tools
+-----------
+Yum:
+sudo apt-get install yum
+Telnet:
+apt-get install telnet
+
+Commands:
+------------
+run shell on container:
+docker exec -it name /bin/bash
+kubectl exec --stdin --tty -n sample helloworld-v1-776f57d5f6-5mkpf -- /bin/bash
+
+find . -name "*.tfstate*" -type f -delete
+find ./terraform_co_cluster -name "*.tfstate*" -type f -delete
+printenv
+
+PAYING ACCOUNTS:
+----------------
+AWS:guy@plec-o.com
+GOOGLE: guy@plec-o.com - old
+pleco3007@shalev-family.com
+
+IDE:
+-----------------
+Gen Files:
+python -m grpc_tools.protoc -I ../protobufs --python_out=. --grpc_python_out=. ../protobufs/pleco_target.proto
+
+Build:
+docker build . -f pleco_target/Dockerfile -t pleco_target
+
+Create Env & Requirements:
+python3 -m pip install -r requirements.txt
+
+Docker:
+------------------
+docker pull guypleco/aws:lts
+docker run -d -p 10.10.0.8:50051:50051 guypleco/aws:
+docker run -d -p 10.10.0.4:50051:50051 guypleco/gcp:latest
+
+Config file handling:
+--------------------
+@dsever : I had no issues to create pod and other stuff with the python kubernetes API except for the job object. I have no knowledge if a fix or soultion available with the K8-Api for Job object.
+However going by the advice of @pvanderlinden above helped to resolve my problem. Going by his advice this is what I did
+a) created a bare minimum K8-Yml specification for a Job . For e.g. 'create_k8job_v1.yml' saved it to a location.
+b) Then read that YML with the help of 'ruamel.yaml' object. This returns a JSON dictionary.
+c) Then set the values of the K8 job specification as per the usecase needs.
+d) Pass the final set to JobBatchClient.create_namespaced_job().
+
+The sample python code synopsys below I think should help.
+
+import ruamel.yaml # assuming a pip install is done :-)
+objConfig = config.load_kube_config(path.join(environ["HOME"], '.kube/config'))
+k8JobBatchClient = client.BatchV1Api(kubernetes.client.ApiClient(objConfig))
+strK8YmlTemplatePath = "/dir-abc/code/k8Job/create_k8job_v1.yml"
+fo = open(strK8YmlTemplatePath)
+objJob = ruamel.yaml.safe_load(fo)
+# Set the custom values of the to-be K8-Job as below
+objJob ['metadata']['name'] = "k8-Job-JingaLaLa"  # Job Name
+objJob ['spec']['template']['spec']['containers'][0]['name'] = "Provide Some Valid ContainerName Here"  # Container Name
+objJob ['spec']['template']['spec']['containers'][0]['image'] = "Provide some valid Container-Image name"
+objJob ['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'] = '200m'
+objJob ['spec']['template']['spec']['containers'][0]['resources']['requests']['memory'] = '512Mi'
+# Finally the lines below to create the k8-Job
+executionResult = self._k8JobBatchClient.create_namespaced_job("NameSpaceDataPipe", objJob)
+# The execution result "executionResult " will be a JSON dictionary
+
+# Extract details on Clusters
+cluster_leader.context = "gke_%s_%s_%s" %(project_id,cluster_leader.zone,cluster_leader.name)
+kubectl get nodes -o json | jq -r '.items[0]  | [.spec.nodeName,.metadata.name]' | grep gke | sed 's/\"//g'
+internal_ip (api-server):
+kubectl get node docker-desktop -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}'
+externap-ip:
+kubectl get node docker-desktop -o jsonpath='{.status.addresses[?(@.type=="ExternalIP")].address}'
+%(cluster_leader.context, nodename_leader,"ExternalIP"))
+        cluster_leader.externalIP=p.read()
+        printMsg("Leader Node details:", cluster_leader.context, nodename_leader,cluster_leader.internalIP,cluster_leader.externalIP)
+# Get API URL and TOKEN
+gcloud container clusters get-credentials pleco-329906-mars --zone us-east1-b --project pleco-329906
+ kubectl config view -o jsonpath='{.clusters[?(@.name=="gke_pleco-329906_us-east1-b_pleco-329906-mars")].cluster.server}'
+        cluster_leader.api_server=p.read()[8:] # remove https://
+        printMsg("Leader Cluster API Server:", cluster_leader.api_server)
+
+token:
+kubectl get secret default-token-9rn5p -o jsonpath="{.items.data.token}"|base64 --decode
+        cluster_leader.token=p.read()
+        printMsg("Leader Cluster TOKEN:", cluster_leader.token)

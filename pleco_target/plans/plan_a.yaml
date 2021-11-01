@@ -1,0 +1,42 @@
+---
+handlers:
+  - type: FilesystemRepositoryHandler
+    directory: ./yaml/
+  - type: DeploymentHandler
+    name: myDepl
+  - type: ServiceHandler
+    name: mySrv
+  - type: RedisHandler
+    name: redis
+sources:
+  !include plan_b.yaml
+plan:
+  - handler: ServiceHandler
+    method: standalone #leap_to_new_cluster, leap_to_new_ns, leap_to_new_node, replicate_in_new_cluster
+    resource:
+      name: emailservice
+      namespace: online-boutique
+      type: Service
+      path: services/emailservice-svc.yaml
+      handler: FilesystemRepositoryHandler
+  - name: step1
+    handler: DeploymentHandler
+    method: standalone #leap_to_new_cluster, leap_to_new_ns, leap_to_new_node, replicate_in_new_cluster
+    resource:
+      name: emailservice
+      namespace: online-boutique
+      type: Deployment
+      path: deployments/emailservice-deployment.yaml
+      handler: FilesystemRepositoryHandler
+  - handler: GCPLoadBalancerHandler
+    method: leap #standalone
+    resource:
+      name: gcp.loadbalancer
+      type: LoadBalancer
+      endpoint_group_name: plecoendpointgroup
+      backend_service: plecobeservice
+      target_port: 80
+      target_service:
+        namespace: istio-system
+        service_name: istio-ingressgateway
+

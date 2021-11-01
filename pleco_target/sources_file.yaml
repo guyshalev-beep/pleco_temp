@@ -1,0 +1,16 @@
+- api_server: ''
+  context: gke_pleco-326905_europe-west2-b_pleco-326905-moon
+  externalIP: ''
+  id: leader_source_id
+  name: leader_source
+  port: '443'
+  suffix: tbd
+  token: ''
+- api_server: ''
+  context: gke_pleco-326905_us-west2-b_pleco-326905-moon-co
+  externalIP: ''
+  id: follower_source_id
+  name: follower_source
+  port: '443'
+  suffix: tbd
+  token: ''

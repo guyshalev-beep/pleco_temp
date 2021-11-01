@@ -1,0 +1,55 @@
+Set up: AWS, T2-Micro, Kind K&8, Docker for AWS Linux
+
+Spin AWS with Terraform
+https://learn.hashicorp.com/tutorials/terraform/aws-build
+AKIAY7ANIJUHPJH5QBXO
+kxr6NK6rm2Gl/KStIsngrDQN1FXgqWT58Us83jqW
+
+In the AWS consul:
+Add Elastic IP (not sure if needed)
+add inbound rule to security group to allow SSH - to be able to connect
+
+Install Docker on AWS
+sudo yum update -y
+sudo amazon-linux-extras install docker
+sudo service docker start
+sudo usermod -a -G docker ec2-user
+
+Install Kind on AWS
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
+chmod +x ./kind
+mv ./kind /home/ec2-user/bin/
+kind create cluster (NOT as root if needed use chmod)
+
+Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+-- basically its enough!!
+
+(Didn't check this instead of re-deploy kubectl)
+chmod +x kubectl
+mkdir -p ~/.local/bin/kubectl
+mv ./kubectl ~/.local/bin/kubectl
+# and then add ~/.local/bin/kubectl to $PATH
+export PATH="/home/ec2-user/.local/bin/kubectl:$PATH"
+export PATH="${HOME}/.kube/config:$PATH"
+/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/ec2-user/.local/bin:/home/ec2-user/bin:/home/ec2-user/.kube/config
+
+
+Hello world
+kubectl apply -f https://k8s.io/examples/service/load-balancer-example.yaml
+kubectl expose deployment hello-world --type=LoadBalancer --name=my-service
+kubectl expose deployment hello-world --type=LoadBalancer --name=nginx-service-loadbalancer
+kubectl get services my-service
+
+Install Metalib
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manifests/namespace.yaml
+kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manifests/metallb.yaml
+kubectl get pods -n metallb-system --watch
+
+
+curl -silent *****.eu-west-1.elb.amazonaws.com:80 | grep title
+
+ ssh -i plecomackey ec2-user@ec2-34-215-7-170.us-west-2.compute.amazonaws.com
+

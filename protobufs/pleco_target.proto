@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+message K8sResources {
+  repeated string snippets = 1;
+}
+message K8sGWRequest {
+    int32 user_id = 1;
+    string body = 2;
+    string fileName = 3;
+    string namespace = 4;
+    string config_file = 5;
+    string client_token = 6;
+    string client_host = 7;
+    string client_port = 8;
+    string resourceName = 9;
+
+}
+message K8sGWResponse {
+    repeated string resources = 1;
+    bool status = 2;
+    string msg = 3;
+}
+service K8sGW {
+    rpc GetNSs (K8sGWRequest) returns (K8sGWResponse);
+    rpc ApplyDeployment (K8sGWRequest) returns (K8sGWResponse);
+    rpc ApplyService (K8sGWRequest) returns (K8sGWResponse);
+    rpc DeleteDeployment (K8sGWRequest) returns (K8sGWResponse);
+    rpc DeleteService (K8sGWRequest) returns (K8sGWResponse);
+    rpc TestConnection (K8sGWRequest) returns (K8sGWResponse);
+}

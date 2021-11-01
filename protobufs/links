@@ -1,0 +1,27 @@
+python -m grpc_tools.protoc -I ../protobufs --python_out=. --grpc_python_out=. ../protobufs/pleco_target.proto
+
+docker build . -f pleco_target/Dockerfile -t pleco_target
+
+docker run -p 192.168.50.184:50051:50051/tcp pleco_target
+docker run -p 192.168.50.13:50051:50051/tcp pleco_target
+docker run -p localhost:50051:50051/tcp pleco_target
+
+python3 -m pip install -r requirements.txt
+
+
+
+    ApiToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjNpUVRWdE40TnBFLTlBSlRfNktMbmdQc2NYazFtM3ktLUNIUkR4dWdoM0kifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tOXJuNXAiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjFiNTVkNzM4LWU2MjQtNDc5Zi1hNTVlLThiZTM2MWI4YzQzMiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.nyc7Kr-jMdXQXR27Mbf44bOoYi5zVKJ0QqYO06jPj--_OUTEs388B3ylr3tXT79Mxc2P0uFR-_JoJ6fo6XMFKvSHbEkTtFpTfxUTfHSX5_GSGitp2u3SYpfEZ3Hva8Bk_VyD-Zg-c2-0381HbIHloPxh9J0nkjBIgG0rhgijOadDl2E9wWXqWn9ew4-SYaogmqyenweQesSf3iheyGtauP9lhxuJ_GR71IPZ96n27Jq1aiG0Ae-C9xp1Do9abNcNjGCZ2mduVqkSnKNBFRAKAJ-hHzyadqpz1tUoE-0NwwtqnxWF7DrQbFDpYIehY_ccHksqY3FwP1AnhiSGOLPaZQ'
+    configuration = client.Configuration()
+    configuration.host = 'https://192.168.50.184:6443'
+    configuration.verify_ssl = False
+    configuration.debug = True
+
+    configuration.api_key_prefix['authorization'] = 'Bearer'
+    configuration.api_key = {ApiToken}
+
+    client.Configuration.set_default(configuration)
+    kubeApi = client.CoreV1Api()
+    try:
+        allPods = kubeApi.list_pod_for_all_namespaces(watch=False)
+    except ApiException as e:
+        print("Exception when calling CoreV1Api->list_pod_for_all_namespaces: %s\n" % e)
