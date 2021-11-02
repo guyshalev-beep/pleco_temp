@@ -26,7 +26,7 @@ cross = sys.argv[6]  # if true, leader will be LEAP cluster and NOT the PRODUCTI
 avoid_delete_state = sys.argv[7]  # if true, Terraform state will not be deleted from follower scripts
 avoide_delete_leader = sys.argv[
     8]  # if true, the leader cluster will remain - in case another leap is scheduled - it will definatly fail as the cluster is still there.
-# python3 main.py 2 120 pleco-326905 pleco2309@shalev-family.com false false false false
+# python3 main.py 3 60 pleco-326905 pleco2309@shalev-family.com false false false false
 
 print("Pleco Leap Trriger is set for %s leaps with period: %s" % (number_of_leaps, leap_period))
 cluster_production = DataClassCluster(name=param_leader_name, zone=param_leader_zone, region=param_leader_region,
@@ -91,17 +91,22 @@ for counter in range(int(number_of_leaps)):
         gcp_project_id, cluster_leader.suffix, cluster_leader.region))
         print("start delete vpc")
         os.system("gcloud compute networks delete %s-vpc%s -q" % (gcp_project_id, cluster_leader.suffix))
-
-#### replace leader and follower
-cluster_temp = cluster_leader
-cluster_leader = cluster_follower
-cluster_follower = cluster_temp
-seconds_end = time.time()
-local_time = time.ctime(seconds_end)
-print("Pleco Leap number %d ends. Current time: %s %s, elapsed time: %d seconds." % (
-counter, local_time, time.tzname, (seconds_end - seconds_start)))
-print("-------------")
-print("-------------")
-print("-------------")
-time.sleep(int(leap_period))
+        #### replace leader and follower
+        cluster_temp = cluster_leader
+        cluster_leader = cluster_follower
+        cluster_follower = cluster_temp
+        seconds_end = time.time()
+        local_time = time.ctime(seconds_end)
+        print("-------------")
+        print("-------------")
+        print("-------------")
+        print("Pleco Leap number %d ends. Current time: %s %s, elapsed time: %d seconds." % (
+        counter, local_time, time.tzname, (seconds_end - seconds_start)))
+        print("-------------")
+        print("-------------")
+        print("-------------")
+        print("-------------")
+        print("-------------")
+        print("-------------")
+        time.sleep(int(leap_period))
 print("Pleco leap ended.")

@@ -2,8 +2,7 @@ Set up: AWS, T2-Micro, Kind K&8, Docker for AWS Linux
 
 Spin AWS with Terraform
 https://learn.hashicorp.com/tutorials/terraform/aws-build
-AKIAY7ANIJUHPJH5QBXO
-kxr6NK6rm2Gl/KStIsngrDQN1FXgqWT58Us83jqW
+
 
 In the AWS consul:
 Add Elastic IP (not sure if needed)
