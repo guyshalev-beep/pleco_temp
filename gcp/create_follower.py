@@ -62,6 +62,7 @@ class PlecoService(object):
             cluster_follower.suffix, cluster_follower.zone, cluster_follower.region, project_id))
         return [cluster_leader, cluster_follower]
 
+    # install istio on follower
     @staticmethod
     def install_istio(cluster_leader: DataClassCluster, cluster_follower: DataClassCluster, project_id, user_name):
         def printMsg(*msgs):
@@ -100,14 +101,17 @@ class PlecoService(object):
             with open(r"istio_install_final.yaml", 'w') as file:
                 result = yaml.dump(doc, file)
             os.system("istioctl install --context=%s -f istio_install_final.yaml -y" % cluster_follower.context)
-            printMsg("Finished install Istion, sleep for 60s")
-            os.system("sleep 60s")
+            printMsg("Finished install Istion, sleep for 10s")
+            os.system("sleep 10s")
         # Expose Services
         s = "kubectl --context=%s apply -n istio-system -f %s/istio-1.9.0/samples/multicluster/expose-services.yaml" % (
         cluster_follower.context, home_path)
         print(s)
         os.system(s)
-        # Enable endpoint discovery
+
+    # Enable endpoint discovery on both clusters
+    @staticmethod
+    def enable_endpoint(cluster_leader: DataClassCluster, cluster_follower: DataClassCluster, project_id, user_name):
         s = "istioctl x create-remote-secret --context=%s --name=%s | kubectl apply -f - --context=%s" % (
         cluster_leader.context, cluster_leader.name, cluster_follower.context)
         print(s)
@@ -117,8 +121,10 @@ class PlecoService(object):
         print(s)
         os.system(s)
 
+        # Install pleco on given cluster
+
     @staticmethod
-    def install_pleco(cluster_leader: DataClassCluster, cluster_follower: DataClassCluster, project_id, user_name):
+    def install_pleco(cluster: DataClassCluster, project_id, user_name):
         def printMsg(*msgs):
             os.system("echo ---------------------------------------------")
             for msg in msgs:
@@ -126,15 +132,15 @@ class PlecoService(object):
             os.system("echo ---------------------------------------------")
 
         p = os.popen(
-            "kubectl get nodes --context %s -o json | jq -r '.items[0]  | [.spec.nodeName,.metadata.name]' | grep gke | sed 's/\"//g'" % cluster_follower.context)
-        nodename_follower = p.read()[2:-1]
-        command1 = "docker run -d -p %s:50051:50051 guypleco/gcp:latest" % "10.10.0.3"
+            "kubectl get nodes --context %s -o json | jq -r '.items[0]  | [.spec.nodeName,.metadata.name]' | grep gke | sed 's/\"//g'" % cluster.context)
+        nodename = p.read()[2:-1]
+        p = os.popen("kubectl --context %s get node %s -o jsonpath='{.status.addresses[?(@.type==\"%s\")].address}'" % (
+        cluster.context, nodename, "InternalIP"))
+        cluster.internalIP = p.read()
+        command1 = "docker run -d -p %s:50051:50051 guypleco/gcp:latest" % cluster.internalIP
         os.system("gcloud beta compute ssh --zone \"%s\" \"%s\"  --project \"%s\" --command=\"%s\"" % (
-        cluster_follower.zone, nodename_follower, project_id, command1))
+        cluster.zone, nodename, project_id, command1))
 
-        printMsg("Leader Connections Params , API Server, Token", "internalIP=%s" % cluster_leader.internalIP,
-                 "ExternalIP=%s" % cluster_leader.externalIP, "API Server=%s" % cluster_leader.api_server,
-                 "TOKEN=%s" % cluster_leader.token)
-        printMsg("Follower Connections Params , API Server, Token", "internalIP=%s" % cluster_follower.internalIP,
-                 "ExternalIP=%s" % cluster_follower.externalIP, "API Server=%s" % cluster_follower.api_server,
-                 "TOKEN=%s" % cluster_follower.token)
+        # printMsg("Leader Connections Params , API Server, Token", "internalIP=%s" % cluster_leader.internalIP, "ExternalIP=%s" % cluster_leader.externalIP, "API Server=%s" % cluster_leader.api_server, "TOKEN=%s" % cluster_leader.token)
+        printMsg("Cluster Connections Params , Name=%s", "internalIP=%s" % cluster.name, cluster.internalIP,
+                 "ExternalIP=%s" % cluster.externalIP, "API Server=%s" % cluster.api_server, "TOKEN=%s" % cluster.token)

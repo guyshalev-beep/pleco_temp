@@ -15,16 +15,18 @@ param_follower_region = "us-west2"
 param_follower_suffix = "-moon-co"
 param_plan_resource_file = "/home/pleco2309/pleco/plans/plan_sources.yaml"
 param_plan_file = "/home/pleco2309/pleco/plans/plan_full.yaml"
+param_istio_defaults = "/home/pleco2309/terraform/terraform_production/cluster1/istio-defaults.yaml"
 
 number_of_leaps = sys.argv[1]
 leap_period = sys.argv[2]  # in seconds
 gcp_project_id = sys.argv[3]
 user_name = sys.argv[4]
-cross = sys.argv[5]  # if true, leader will be LEAP cluster and NOT the PRODUCTION cluster
-avoid_delete_state = sys.argv[6]  # if true, Terraform state will not be deleted from follower scripts
+avoide_update_leader = sys.argv[5]  # if true, leader will not be installed (standalone for follower)
+cross = sys.argv[6]  # if true, leader will be LEAP cluster and NOT the PRODUCTION cluster
+avoid_delete_state = sys.argv[7]  # if true, Terraform state will not be deleted from follower scripts
 avoide_delete_leader = sys.argv[
-    7]  # if true, the leader cluster will remain - in case another leap is scheduled - it will definatly fail as the cluster is still there.
-# python3 main.py 1 0 pleco-326905 pleco2309@shalev-family.com true true true
+    8]  # if true, the leader cluster will remain - in case another leap is scheduled - it will definatly fail as the cluster is still there.
+# python3 main.py 2 120 pleco-326905 pleco2309@shalev-family.com false false false false
 
 print("Pleco Leap Trriger is set for %s leaps with period: %s" % (number_of_leaps, leap_period))
 cluster_production = DataClassCluster(name=param_leader_name, zone=param_leader_zone, region=param_leader_region,
@@ -59,12 +61,47 @@ for counter in range(int(number_of_leaps)):
     #### install istio on follower cluster
     result = PlecoService.install_istio(cluster_leader, cluster_follower, gcp_project_id, user_name)
 
+    #### Enable endpoints on leader and follower clusters
+    if (avoide_update_leader == "false"):
+        result = PlecoService.enable_endpoint(cluster_leader, cluster_follower, gcp_project_id, user_name)
+
+    #### install pleco on leader cluster
+    if (avoide_update_leader == "false"):
+        result = PlecoService.install_pleco(cluster_leader, gcp_project_id, user_name)
     #### install pleco on follower cluster
-    result = PlecoService.install_pleco(cluster_leader, cluster_follower, gcp_project_id, user_name)
+    result = PlecoService.install_pleco(cluster_follower, gcp_project_id, user_name)
 
     #### leap online-boutique app
-    os.system("python3 leap_online_boutique.py %s %s %s %s %s" % (
+    os.system("kubectl --context %s create namespace online-boutique" % cluster_follower.context)
+    os.system("kubectl --context %s label namespace online-boutique istio-injection=enabled" % cluster_follower.context)
+    os.system("kubectl apply -n online-boutique -f %s" % param_istio_defaults)
+    os.system("python3 leap_online_boutique.py %s %s %s %s %s %s" % (
     cluster_leader.context, cluster_leader.suffix, cluster_follower.context, cluster_follower.suffix,
     param_plan_resource_file, param_plan_file))
 
+    #### destroy leader cluster - TBD
+    # os.system("echo Proceed? [y/n]: \n read -n 1 ans")
+    if (avoide_delete_leader != "true"):
+        os.system("gcloud container clusters delete %s -q --zone %s" % (cluster_leader.name, cluster_leader.zone))
+        print("start delete firewall rule")
+        os.system(
+            "gcloud compute firewall-rules delete -q allow-all-%s-vpc%s" % (gcp_project_id, cluster_leader.suffix))
+        print("start delete subnet")
+        os.system("gcloud compute networks subnets delete -q %s-subnet%s --region %s" % (
+        gcp_project_id, cluster_leader.suffix, cluster_leader.region))
+        print("start delete vpc")
+        os.system("gcloud compute networks delete %s-vpc%s -q" % (gcp_project_id, cluster_leader.suffix))
+
+#### replace leader and follower
+cluster_temp = cluster_leader
+cluster_leader = cluster_follower
+cluster_follower = cluster_temp
+seconds_end = time.time()
+local_time = time.ctime(seconds_end)
+print("Pleco Leap number %d ends. Current time: %s %s, elapsed time: %d seconds." % (
+counter, local_time, time.tzname, (seconds_end - seconds_start)))
+print("-------------")
+print("-------------")
+print("-------------")
+time.sleep(int(leap_period))
 print("Pleco leap ended.")
